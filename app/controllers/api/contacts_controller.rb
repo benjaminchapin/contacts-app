@@ -12,17 +12,17 @@ class Api::ContactsController < ApplicationController
 
   def index
     @contacts = Contact.all
-    render "contacts.json.jb"
+    render "index.json.jb"
   end
 
   def new
     @contacts = Contact.new
-    render "contacts.json.jb"
+    render "index.json.jb"
   end
 
   def show
-    @contacts = Contact.find_by(id: params["id"])
-    render "contacts.json.jb"
+    @contact = Contact.find_by(id: params["id"])
+    render "show.json.jb"
   end
 
   def create
@@ -33,7 +33,7 @@ class Api::ContactsController < ApplicationController
       email: params[:email]
       )
     @contacts.save
-    render "contacts.json.jb"
+    render "index.json.jb"
   end
 
   def update
@@ -44,7 +44,7 @@ class Api::ContactsController < ApplicationController
     @contact.phone_number = params[:phone_number] || @contact.phone_number
 
     @contact.save
-    render "contacts.json.jb"
+    render "index.json.jb"
   end
 
   def destroy
