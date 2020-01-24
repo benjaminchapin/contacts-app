@@ -11,7 +11,12 @@ class Api::ContactsController < ApplicationController
   end
 
   def index
-    @contacts = Contact.all
+    @contacts = Contact.all           #array of contact hashes
+
+    if params[:search]
+      @contacts = Contact.where("first_name iLIKE ? or last_name iLIKE ? or email iLIKE ?", "#{params[:search]}", "#{params[:search]}", "#{params[:search]}")
+    end
+
     render "index.json.jb"
   end
 
@@ -21,34 +26,52 @@ class Api::ContactsController < ApplicationController
   end
 
   def show
-    @contact = Contact.find_by(id: params["id"])
+    @contact = Contact.find_by(id: params["id"])           
     render "show.json.jb"
   end
 
   def create
+
+    coordinates = Geocoder.address(params[:address])
+
     @contact = Contact.new(
       first_name: params[:first_name],
       middle_name: params[:middle_name],
       last_name: params[:last_name],
       phone_number: params[:phone_number],
+      longitude: params[:longitude],
+      latitude: params[:latitude],
       email: params[:email],
       bio: params[:bio]
       )
-    @contact.save
-    render "show.json.jb"
+    if @contact.save
+      render "show.json.jb"
+    else
+      render json: {errors: @contact.errors.full_messages}, status: :unprocessable_entity
+    end  
   end
 
   def update
-    @contact = Contact.find_by(id: params["id"])
-    @contact.first_name = params[:first_name] || @contact.first_name,
-    @contact.middle_name = params[:middle_name] || @contact.middle_name,
-    @contact.last_name = params[:last_name] || @contact.last_name,
-    @contact.email = params[:email] || @contact.email,
-    @contact.phone_number = params[:phone_number] || @contact.phone_number,
+    @contact = Contact.find_by(id: params[:id])
+
+    if params[:address]
+      coordinates = Geocoder.coordinates(params[:address])
+      @contact.longitude = coordinates[1] || @contact.longitude
+      @contact.latitude = coordinates[0] || @contact.latitude
+    end
+
+    @contact.first_name = params[:first_name] || @contact.first_name
+    @contact.middle_name = params[:middle_name] || @contact.middle_name
+    @contact.last_name = params[:last_name] || @contact.last_name
+    @contact.email = params[:email] || @contact.email
+    @contact.phone_number = params[:phone_number] || @contact.phone_number
     @contact.bio = params[:bio] || @contact.bio
 
-    @contact.save
-    render "index.json.jb"
+    if @contact.save
+      render "show.json.jb"
+    else
+      render json: {errors: @contact.errors.full_messages}, status: :unprocessable_entity
+    end  
   end
 
   def destroy
