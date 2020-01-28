@@ -11,17 +11,14 @@ class Api::ContactsController < ApplicationController
   end
 
   def index
-    @contacts = Contact.all           #array of contact hashes
+    @contacts = current_user.contacts           #array of contact hashes
 
     if params[:search]
       @contacts = Contact.where("first_name iLIKE ? or last_name iLIKE ? or email iLIKE ?", "#{params[:search]}", "#{params[:search]}", "#{params[:search]}")
     end
 
-    render "index.json.jb"
-  end
+    @contacts = @contacts.order(:id)
 
-  def new
-    @contacts = Contact.new
     render "index.json.jb"
   end
 
@@ -42,7 +39,8 @@ class Api::ContactsController < ApplicationController
       longitude: params[:longitude],
       latitude: params[:latitude],
       email: params[:email],
-      bio: params[:bio]
+      bio: params[:bio],
+      user_id: current_user.id
       )
     if @contact.save
       render "show.json.jb"
