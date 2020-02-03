@@ -17,6 +17,11 @@ class Api::ContactsController < ApplicationController
       @contacts = Contact.where("first_name iLIKE ? or last_name iLIKE ? or email iLIKE ?", "#{params[:search]}", "#{params[:search]}", "#{params[:search]}")
     end
 
+    if params[:group]
+      group = Group.find_by(name: params[:group])
+      @contacts = group.contacts.where(user_id: current_user.id)
+    end
+
     @contacts = @contacts.order(:id)
 
     render "index.json.jb"
